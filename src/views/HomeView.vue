@@ -62,31 +62,41 @@ export default {
         });
       },
 
-      /* Generate a response */
-      generateResponse(message){
+      
+
+      generateResponse(message) {
         const requestOptions = {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ text: message})
+          body: JSON.stringify({ text: message })
         };
         fetch('http://0.0.0.0:80/post', requestOptions)
-        .then(async response => {
-          const data = await response.json();
-          const newText = data.text.response;
-
-          if (newText.startsWith("Repeat:")) {
-              // Remove "Repeat:" from the beginning of the string
-              this.messages[this.messages.length - 1].text = newText.substring("Repeat: ".length);
+        .then(response => response.json())
+        .then(data => {
+          if (!data.success) {
+            // Display the error message from the server in the chat interface
+            this.messages[this.messages.length - 1].text = data.error
           } else {
-              // If the string doesn't start with "Repeat:", keep it as it is
-              this.messages[this.messages.length - 1].text = newText;
+
+            // Check if the response text starts with "Repeat:"
+            const newText = data.text.response;
+            if (newText.startsWith("Repeat:")) {
+              // Remove "Repeat:" from the beginning of the string
+              this.messages[this.messages.length - 1].text = newText.substring("Repeat: ".length)
+            } else {
+              // If the string doesn't start with "Repeat:", display it as is
+              this.messages[this.messages.length - 1].text = newText
+            }
           }
         })
         .catch(error => {
-          this.errorMessage = error;
-          console.error('Došlo je do greške!', error);
+          // Log the error to the console and show a generic error message in the chat
+          console.error('Error:', error);
+          this.messages[this.messages.length - 1].text = "Doslo je do greske, proverite internet konekciju i pokusajte ponovo, ako se problem nastavi pokusajte kasnije mozda je preveliki saobracaj trenutno.", "incoming"
         });
       },
+
+      
 
       /* Handling the chat */
       handleChat() {
