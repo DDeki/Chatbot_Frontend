@@ -12,12 +12,12 @@
         <h2>ISO Chatbot</h2>
         <span class="close-btn material-symbols-outlined" @click="closeChatbot">close</span>
       </header>
-      <ul class="chatbox" ref="chatbox">
-        <li v-for="(message, index) in messages" :key="index" :class="`chat ${message.type === 'incoming' ? 'incoming' : 'outgoing'}`">
-          <span class="material-symbols-outlined" v-if="message.type === 'incoming'">smart_toy</span>
-          <p v-html="message.text"></p>
-        </li>
-      </ul>
+        <transition-group name="chat" tag="ul" class="chatbox" ref="chatbox">
+          <li v-for="(message, index) in messages" :key="index" :class="`chat ${message.type === 'incoming' ? 'incoming' : 'outgoing'}`">
+            <span class="material-symbols-outlined" v-if="message.type === 'incoming'">smart_toy</span>
+            <p v-html="message.text"></p>
+          </li>
+        </transition-group>
       <div class="chat-input">
         <textarea v-model="userMessage" placeholder="Unesite pitanje..." spellcheck="false" required ref="chatInputTextArea" @input = adjustTextareaHeight() @keydown="handleKeydown"></textarea>
         <span class="material-symbols-rounded" @click="handleChat">send</span>
