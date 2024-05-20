@@ -6,6 +6,9 @@
     </button>
     <div class="chatbot">
       <header>
+        <button class="reset-btn" @click="clearMemory">
+          <i class="fas fa-sync-alt"></i> Resetuj
+        </button>
         <h2>ISO Chatbot</h2>
         <span class="close-btn material-symbols-outlined" @click="closeChatbot">close</span>
       </header>
@@ -26,6 +29,10 @@
 
 <script>
 // @ is an alias to /src
+const WELCOME_MESSAGE = `Zdravo, kako Vam mogu pomoći danas?
+Napomena: Ako menjate temu u razgovoru preporučljivo je da kliknete Resetuj
+`;
+
 export default {
   name: 'HomeView',
   components: {
@@ -37,7 +44,7 @@ export default {
       messages: [
         {
           type: "incoming",
-          text: "Zdravo, kako Vam mogu pomoći danas?"
+          text: WELCOME_MESSAGE
         }
       ],
       showChatbot: "",
@@ -52,13 +59,44 @@ export default {
       },
       toggleChatbot() {
         this.showChatbot = this.showChatbot ? "" : "show-chatbot";
-      },
+      },    
 
       /* Putting message in the chatbox */
       sendChat(message, type) {
         this.messages.push({
           type: type,
           text: message
+        });
+      },
+
+
+      /* Clearing a chat history */
+      clearMemory() {
+        fetch('http://0.0.0.0:80/post/clear_memory', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({}) // No data is needed to send
+        })
+        .then(response => response.json())
+        .then(data => {
+          if (data.success) {
+            // Clear messages in the UI
+            this.messages = [{
+              type: "incoming",
+              text: WELCOME_MESSAGE
+            }];
+
+          } else {
+            // Handle error returned by the server
+            console.error('Error:', error);
+            this.messages[this.messages.length - 1].text = data.error
+          }
+        })
+        .catch(error => {
+          // Handle network or other errors
+          console.error('Error:', error);
+          this.messages[this.messages.length - 1].text = "Doslo je do greske, proverite internet konekciju i pokusajte ponovo, ako se problem nastavi pokusajte kasnije mozda je preveliki saobracaj trenutno.", "incoming"
+
         });
       },
 
@@ -70,11 +108,12 @@ export default {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ text: message })
         };
-        fetch('http://0.0.0.0:80/post', requestOptions)
+        fetch('http://0.0.0.0:80/post/generate_response', requestOptions)
         .then(response => response.json())
         .then(data => {
           if (!data.success) {
             // Display the error message from the server in the chat interface
+            console.error('Error:', error);
             this.messages[this.messages.length - 1].text = data.error
           } else {
 
@@ -90,7 +129,7 @@ export default {
           }
         })
         .catch(error => {
-          // Log the error to the console and show a generic error message in the chat
+          // Handle network or other errors
           console.error('Error:', error);
           this.messages[this.messages.length - 1].text = "Doslo je do greske, proverite internet konekciju i pokusajte ponovo, ako se problem nastavi pokusajte kasnije mozda je preveliki saobracaj trenutno.", "incoming"
         });
