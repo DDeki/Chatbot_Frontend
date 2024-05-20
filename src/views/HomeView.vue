@@ -29,9 +29,11 @@
 
 <script>
 // @ is an alias to /src
-const WELCOME_MESSAGE = `Zdravo, kako Vam mogu pomoći danas?
-Napomena: Ako menjate temu u razgovoru preporučljivo je da kliknete Resetuj
-`;
+const WELCOME_MESSAGE = `Zdravo, koje pitanje za ISO standarde imate?
+Napomena: Ako menjate temu u razgovoru preporučljivo je da kliknete Resetuj`;
+
+const GENERIC_ERROR_MESSAGE = `Doslo je do greske, proverite internet konekciju i pokusajte ponovo, 
+ako se problem nastavi pokusajte kasnije mozda je preveliki saobracaj trenutno. Preporučljivo je i kliknuti Resetuj`;
 
 export default {
   name: 'HomeView',
@@ -88,14 +90,12 @@ export default {
 
           } else {
             // Handle error returned by the server
-            console.error('Error:', error);
             this.messages[this.messages.length - 1].text = data.error
           }
         })
         .catch(error => {
           // Handle network or other errors
-          console.error('Error:', error);
-          this.messages[this.messages.length - 1].text = "Doslo je do greske, proverite internet konekciju i pokusajte ponovo, ako se problem nastavi pokusajte kasnije mozda je preveliki saobracaj trenutno.", "incoming"
+          this.messages[this.messages.length - 1].text = GENERIC_ERROR_MESSAGE, "incoming"
 
         });
       },
@@ -113,7 +113,6 @@ export default {
         .then(data => {
           if (!data.success) {
             // Display the error message from the server in the chat interface
-            console.error('Error:', error);
             this.messages[this.messages.length - 1].text = data.error
           } else {
 
@@ -130,8 +129,7 @@ export default {
         })
         .catch(error => {
           // Handle network or other errors
-          console.error('Error:', error);
-          this.messages[this.messages.length - 1].text = "Doslo je do greske, proverite internet konekciju i pokusajte ponovo, ako se problem nastavi pokusajte kasnije mozda je preveliki saobracaj trenutno.", "incoming"
+          this.messages[this.messages.length - 1].text = GENERIC_ERROR_MESSAGE, "incoming"
         });
       },
 
@@ -184,6 +182,7 @@ export default {
   mounted() {
     // Optionally, adjust the height when the component mounts in case there is initial content
     this.$nextTick(this.adjustTextareaHeight);
+    this.clearMemory();
   }
 }
 </script>
