@@ -173,6 +173,7 @@ header h2 {
 }
 
 .reset-btn {
+  font-size: 1.1em;
   background: #fff;
   color: #724ae8;
   border: 1px solid #724ae8;
@@ -180,8 +181,12 @@ header h2 {
   margin-left: 10px; /* Provide some spacing from the left edge */
   border-radius: 5px;
   cursor: pointer;
-  font-size: 0.95rem;
   font-family: "Poppins", sans-serif; /* Using the same font for consistency */
+}
+
+.reset-btn i {
+  font-size: 1.2em; /* Slightly larger font size for the icon */
+  margin-right: 5px; /* Space between the icon and the text */
 }
 
 /* Transition for the chat messages */

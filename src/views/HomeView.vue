@@ -9,7 +9,7 @@
         <button class="reset-btn" @click="clearMemory">
           <i class="fas fa-sync-alt"></i> Resetuj
         </button>
-        <h2>ISO Chatbot</h2>
+        <h2>ISO Chatbot&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</h2>
         <span class="close-btn material-symbols-outlined" @click="closeChatbot">close</span>
       </header>
         <transition-group name="chat" tag="ul" class="chatbox" ref="chatbox">
