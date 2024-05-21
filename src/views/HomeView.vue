@@ -29,11 +29,15 @@
 
 <script>
 // @ is an alias to /src
+const DELAY = 600; // in miliseconds
+
 const WELCOME_MESSAGE = `Zdravo, koje pitanje za ISO standarde imate?
 Napomena: Ako menjate temu u razgovoru preporučljivo je da kliknete Resetuj`;
 
 const GENERIC_ERROR_MESSAGE = `Doslo je do greske, proverite internet konekciju i pokusajte ponovo, 
 ako se problem nastavi pokusajte kasnije mozda je preveliki saobracaj trenutno. Preporučljivo je i kliknuti Resetuj`;
+
+const FINDING_MESSAGE = `Traženje odgovora...`
 
 export default {
   name: 'HomeView',
@@ -149,9 +153,9 @@ export default {
 
         // Bot responding
         setTimeout(() => {
-          this.sendChat("Traženje odgovora...", "incoming");
+          this.sendChat(FINDING_MESSAGE, "incoming");
           this.generateResponse(message);
-        }, 600);
+        }, DELAY);
       },
 
       /* Adjusting the textarea height */
