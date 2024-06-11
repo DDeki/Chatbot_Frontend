@@ -23,11 +23,19 @@
         <span class="material-symbols-rounded" @click="handleChat">send</span>
       </div>
     </div>
+    <div v-if="!showChatbot" class="centered-text">
+      <p>1. Chatbot može pogrešiti. Preporučujemo da se konsultujete i sa stručnjakom pre donošenja odluka.</p>
+      <p>2. Chatbot je namenjen isključivo za informacione svrhe vezane za ISO standarde. Molimo vas da ga ne koristite u druge svrhe.</p>
+      <p>3. Ako se chatbot koristi duže vreme ili se menja tema razgovora, savetujemo da izvršite reset.</p>
+      <p>4. Nakon dva sata neaktivnosti, chat će biti obrisan.</p>
+    </div>
   </div>
 </template>
 
 
 <script>
+import keycloak from '@/keycloak';
+
 // @ is an alias to /src
 const DELAY = 600; // in miliseconds
 
@@ -53,7 +61,7 @@ export default {
           text: WELCOME_MESSAGE
         }
       ],
-      showChatbot: "",
+      showChatbot: "show-chatbot",
       inputInitHeight: 0 // To store the initial height of the textarea
     };
   },
@@ -78,10 +86,11 @@ export default {
 
       /* Clearing a chat history */
       clearMemory() {
+        const username = keycloak.tokenParsed.preferred_username;
         fetch('http://0.0.0.0:80/post/clear_memory', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({}) // No data is needed to send
+          body: JSON.stringify({ username: username })
         })
         .then(response => response.json())
         .then(data => {
@@ -107,10 +116,11 @@ export default {
       
 
       generateResponse(message) {
+        const username = keycloak.tokenParsed.preferred_username;
         const requestOptions = {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ text: message })
+          body: JSON.stringify({ text: message, username: username })
         };
         fetch('http://0.0.0.0:80/post/generate_response', requestOptions)
         .then(response => response.json())
