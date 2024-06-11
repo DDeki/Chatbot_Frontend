@@ -24,6 +24,7 @@
       </div>
     </div>
     <div v-if="!showChatbot" class="centered-text">
+      <p><strong>Upozorenja:</strong></p>
       <p>1. Chatbot može pogrešiti. Preporučujemo da se konsultujete i sa stručnjakom pre donošenja odluka.</p>
       <p>2. Chatbot je namenjen isključivo za informacione svrhe vezane za ISO standarde. Molimo vas da ga ne koristite u druge svrhe.</p>
       <p>3. Ako se chatbot koristi duže vreme ili se menja tema razgovora, savetujemo da izvršite reset.</p>
