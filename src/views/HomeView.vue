@@ -28,7 +28,8 @@
       <p>1. Chatbot može pogrešiti. Preporučujemo da se konsultujete i sa stručnjakom pre donošenja odluka.</p>
       <p>2. Chatbot je namenjen isključivo za informacione svrhe vezane za ISO standarde. Molimo vas da ga ne koristite u druge svrhe.</p>
       <p>3. Ako se chatbot koristi duže vreme ili se menja tema razgovora, savetujemo da izvršite reset.</p>
-      <p>4. Nakon dva sata neaktivnosti, chat će biti obrisan.</p>
+      <p>4. Nakon jednog sata neaktivnosti, razgovor će biti obrisan.</p>
+      <p>5. U samo jednom prozoru možete pričati sa chatbotom, otvaranje novog prozora briše razgovor u prošlom prozoru. Molimo vas da koristite chatbota u samo jednom prozoru.</p>
     </div>
   </div>
 </template>
@@ -104,7 +105,7 @@ export default {
 
           } else {
             // Handle error returned by the server
-            this.messages[this.messages.length - 1].text = data.error
+            this.messages[this.messages.length - 1].text = GENERIC_ERROR_MESSAGE, "incoming"
           }
         })
         .catch(error => {
@@ -198,6 +199,8 @@ export default {
     // Optionally, adjust the height when the component mounts in case there is initial content
     this.$nextTick(this.adjustTextareaHeight);
     this.clearMemory();
+
+
   }
 }
 </script>
