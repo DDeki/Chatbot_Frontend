@@ -29,7 +29,7 @@
       <p>2. Chatbot je namenjen isključivo za informacione svrhe vezane za ISO standarde. Molimo vas da ga ne koristite u druge svrhe.</p>
       <p>3. Ako se chatbot koristi duže vreme ili se menja tema razgovora, savetujemo da izvršite reset.</p>
       <p>4. Nakon jednog sata neaktivnosti, razgovor će biti obrisan.</p>
-      <p>5. U samo jednom prozoru možete pričati sa chatbotom, otvaranje novog prozora briše razgovor u prošlom prozoru. Molimo vas da koristite chatbota u samo jednom prozoru.</p>
+      <p>5. U samo jednom prozoru možete pričati sa chatbotom, otvaranje novog prozora briše razgovor u prošlom prozoru.</p>
     </div>
   </div>
 </template>
@@ -89,7 +89,7 @@ export default {
       /* Clearing a chat history */
       clearMemory() {
         const username = keycloak.tokenParsed.preferred_username;
-        fetch('http://0.0.0.0:80/post/clear_memory', {
+        fetch('http://0.0.0.0:8000/post/clear_memory', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ username: username })
@@ -124,7 +124,7 @@ export default {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ text: message, username: username })
         };
-        fetch('http://0.0.0.0:80/post/generate_response', requestOptions)
+        fetch('http://0.0.0.0:8000/post/generate_response', requestOptions)
         .then(response => response.json())
         .then(data => {
           if (!data.success) {
