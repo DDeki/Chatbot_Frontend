@@ -3,8 +3,15 @@
   margin: 0;
   padding: 0;
   box-sizing: border-box;
-  font-family: "Poppins", sans-serif;
+  font-family: "Arial", sans-serif;
 }
+
+body {
+  background: url('@/assets/background.png') no-repeat center center fixed;
+  background-size: 100% 100%;
+  font-family: Arial, sans-serif;
+}
+
 .chatbot-toggler {
   position: fixed;
   bottom: 30px;
@@ -18,7 +25,7 @@
   align-items: center;
   justify-content: center;
   border-radius: 50%;
-  background: #724ae8;
+  background: rgb(28, 63, 148);
   transition: all 0.2s ease;
 }
 div#chat.show-chatbot .chatbot-toggler {
@@ -65,7 +72,7 @@ div#chat.show-chatbot .chatbot {
   position: relative;
   text-align: center;
   color: #fff;
-  background: #724ae8;
+  background: rgb(28, 63, 148);
   box-shadow: 0 2px 10px rgba(0,0,0,0.1);
 }
 .chatbot header span {
@@ -113,7 +120,7 @@ header h2 {
   text-align: center;
   line-height: 32px;
   align-self: flex-end;
-  background: #724ae8;
+  background: rgb(28, 63, 148);
   border-radius: 4px;
   margin: 0 10px 7px 0;
 }
@@ -124,7 +131,7 @@ header h2 {
   max-width: 75%;
   color: #fff;
   font-size: 0.95rem;
-  background: #724ae8;
+  background: rgb(28, 63, 148);
   word-wrap: break-word;
 }
 .chatbox .incoming p {
@@ -160,7 +167,7 @@ header h2 {
 }
 .chat-input span {
   align-self: flex-end;
-  color: #724ae8;
+  color: rgb(28, 63, 148);
   cursor: pointer;
   height: 55px;
   display: flex;
@@ -175,13 +182,13 @@ header h2 {
 .reset-btn {
   font-size: 1.1em;
   background: #fff;
-  color: #724ae8;
-  border: 1px solid #724ae8;
+  color: rgb(28, 63, 148);
+  border: 1px solid rgb(28, 63, 148);
   padding: 5px 10px;
   margin-left: 10px; /* Provide some spacing from the left edge */
   border-radius: 5px;
   cursor: pointer;
-  font-family: "Poppins", sans-serif; /* Using the same font for consistency */
+  font-family: "Arial", sans-serif; /* Using the same font for consistency */
 }
 
 .reset-btn i {
@@ -205,6 +212,7 @@ header h2 {
   height: 80vh;
   text-align: center;
   flex-direction: column;
+  font-family: "Arial" , sans-serif;
 }
 
 .centered-text p {
