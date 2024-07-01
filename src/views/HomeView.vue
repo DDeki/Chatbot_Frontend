@@ -205,6 +205,9 @@ export default {
       // Remove the state and other parameters from the URL
       window.history.replaceState({}, document.title, "/iso_chatbot/");
     }
+
+    // Set cookies with appropriate attributes if needed
+    document.cookie = "key=value; SameSite=None; Secure";
   }
 }
 </script>
