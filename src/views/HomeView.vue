@@ -6,7 +6,7 @@
     </button>
     <div class="chatbot">
       <header>
-        <button class="reset-btn" @click="clearMemory" :class="{ 'disabled': isGeneratingResponse }">
+        <button class="reset-btn" @click="clearMemory">
           <i class="fas fa-sync-alt"></i> Resetuj
         </button>
         <h2>ISO Chatbot&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</h2>
@@ -40,14 +40,10 @@
   </div>
 </template>
 
-
-
-
 <script>
 import keycloak from '@/keycloak';
 
-// @ is an alias to /src
-const DELAY = 600; // in milliseconds
+const DELAY = 600;
 
 const WELCOME_MESSAGE = `Zdravo, koje pitanje za ISO standarde imate?
 Napomena: Ako menjate temu u razgovoru preporučljivo je da kliknete Resetuj`;
@@ -75,17 +71,8 @@ export default {
       isGeneratingResponse: false
     };
   },
-  watch: {
-    messages: {
-      handler() {
-        console.log("Messages updated, calling scrollToBottom");
-        this.scrollToBottom();
-      },
-      deep: true
-    }
-  },
   methods: {
-    /* Show and hide the chatbot */
+
     closeChatbot() {
       this.showChatbot = "";
     },
@@ -93,20 +80,16 @@ export default {
       this.showChatbot = this.showChatbot ? "" : "show-chatbot";
     },
 
-    /* Putting message in the chatbox */
     sendChat(message, type, recommendationIndex = null) {
       this.messages.push({
         type: type,
         text: message,
         recommendationIndex: recommendationIndex
       });
-      this.scrollToBottom();
+      this.$nextTick(this.scrollToBottom);
     },
 
-    /* Clearing a chat history */
     clearMemory() {
-      if (this.isGeneratingResponse) return;
-
       const username = keycloak.tokenParsed.preferred_username;
       fetch('http://0.0.0.0:8000/post/clear_memory', {
         method: 'POST',
@@ -124,11 +107,11 @@ export default {
           } else {
             this.messages[this.messages.length - 1].text = GENERIC_ERROR_MESSAGE;
           }
-          this.scrollToBottom();
+          this.$nextTick(this.scrollToBottom);
         })
         .catch(error => {
           this.messages[this.messages.length - 1].text = GENERIC_ERROR_MESSAGE;
-          this.scrollToBottom();
+          this.$nextTick(this.scrollToBottom);
         });
     },
 
@@ -143,7 +126,7 @@ export default {
       fetch('http://0.0.0.0:8000/post/generate_response', requestOptions)
         .then(response => response.json())
         .then(data => {
-          clearInterval(this.loadingInterval); // Stop the loading animation
+          clearInterval(this.loadingInterval);
           if (!data.success) {
             this.messages[this.messages.length - 1].text = data.error;
             this.isGeneratingResponse = false;
@@ -157,63 +140,57 @@ export default {
               this.recommendedQuestions = data.recommended_questions;
             }
           }
-          this.scrollToBottom();
+          this.$nextTick(this.scrollToBottom);
         })
         .catch(error => {
-          clearInterval(this.loadingInterval); // Stop the loading animation
+          clearInterval(this.loadingInterval);
           this.messages[this.messages.length - 1].text = GENERIC_ERROR_MESSAGE;
-          this.scrollToBottom();
+          
+          this.$nextTick(this.scrollToBottom);
 
           this.isGeneratingResponse = false;
         });
     },
 
-    /* Handling the chat */
     handleChat() {
-      // User sending a message 
       const message = this.userMessage.trim();
       if (!message) { return; }
       if (!message || this.isGeneratingResponse) { 
           return;
         }
       
-      // Clear recommended questions when user types a new message
       this.recommendedQuestions = [];
       this.messages = this.messages.filter(message => message.type !== "recommendation" && message.type !== "recommendation-title");
 
       this.sendChat(message, "outgoing");
       this.userMessage = "";
 
-      // Reset the textarea height after sending the message
       const chatInput = this.$refs.chatInputTextArea;
       chatInput.style.height = `${this.inputInitHeight}px`;
 
       this.isGeneratingResponse = true;
 
-      // Bot responding
       setTimeout(() => {
         this.sendChat("", "incoming");
-        this.startLoadingAnimation(); // Start the loading animation
+        this.startLoadingAnimation();
         this.generateResponse(message);
       }, DELAY);
     },
 
-    /* Adjusting the textarea height */
     adjustTextareaHeight() {
       const chatInput = this.$refs.chatInputTextArea;
       if (!this.inputInitHeight) {
         this.inputInitHeight = chatInput.scrollHeight;
       }
-      // Reset the element's height to its initial height before calculating the new height,
-      // to ensure accurate calculation if the content's height is now less than before
+
       chatInput.style.height = `${this.inputInitHeight}px`;
       chatInput.style.height = `${chatInput.scrollHeight}px`;
     },
 
     handleKeydown(e) {
       if (e.key === "Enter" && !e.shiftKey && window.innerWidth > 800) {
-        e.preventDefault(); // Prevent the default action to avoid adding a new line
-        this.handleChat(); // Call the method to handle the chat
+        e.preventDefault();
+        this.handleChat();
       }
     },
 
@@ -224,36 +201,36 @@ export default {
       this.loadingInterval = setInterval(() => {
         this.loadingMessageIndex = (this.loadingMessageIndex + 1) % loadingStates.length;
         this.messages[this.messages.length - 1].text = loadingStates[this.loadingMessageIndex];
-        this.scrollToBottom(); // Scroll to bottom during loading animation
-      }, 500); // Adjust the interval time as needed
+      }, 500); // 0.5s
     },
 
     handleRecommendationClick(index) {
       const rec = this.recommendedQuestions[index];
-      // Clear the recommended questions
       this.recommendedQuestions = [];
       this.messages = this.messages.filter(message => message.type !== "recommendation" && message.type !== "recommendation-title");
-      // Simulate user asking the recommended question
       this.sendChat(rec.question, "outgoing");
       this.sendChat(rec.answer, "incoming");
     },
 
     scrollToBottom() {
-    this.$nextTick(() => {
-      const chatbox = this.$refs.chatbox.$el || this.$refs.chatbox;
-      if (chatbox && chatbox.nodeType === 1) {
-        console.log("Forced scroll to bottom:", chatbox.scrollTop, chatbox.scrollHeight, chatbox);
-        chatbox.scrollTop = chatbox.scrollHeight;
-      }
-    });
-  }
-
+      this.$nextTick(() => {
+        const chatbox = this.$refs.chatbox.$el || this.$refs.chatbox;
+        if (chatbox && chatbox.nodeType === 1) {
+          console.log("Forced scroll to bottom:", chatbox.scrollTop, chatbox.scrollHeight, chatbox);
+          chatbox.scrollTop = chatbox.scrollHeight;
+        }
+      });
+    }
+  },
+  updated() {
+    // when user is typing called after every change
   },
   mounted() {
     this.$nextTick(this.adjustTextareaHeight);
     this.clearMemory();
 
     if (window.location.href.indexOf('state=') !== -1) {
+      // Remove the state and other parameters from the URL
       window.history.replaceState({}, document.title, "/iso_chatbot/");
     }
 
@@ -261,8 +238,6 @@ export default {
   }
 }
 </script>
-
-
 
 
 
