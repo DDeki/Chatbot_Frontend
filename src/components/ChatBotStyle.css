@@ -249,7 +249,7 @@ header h2 {
 }
 
 .recommendation-title {
-  margin-top: 20px; /* Space between the last assistant message and the "Preporučena pitanja" title */
+  margin-top: 20px;
   text-align: center;
 }
 
@@ -257,11 +257,19 @@ header h2 {
   display: flex;
   flex-direction: column;
   align-items: center;
-  margin-top: 20px; /* Additional space between the title and questions */
-  margin-bottom: 20px; /* Space between the questions and the next message */
+  margin-top: 20px;
+  margin-bottom: 20px;
+  opacity: 1;
+  transition: opacity 0.5s;
 }
 
+.recommendation-container.fade-out {
+  opacity: 0;
+}
 
+.recommendation-container.fade-in {
+  opacity: 1;
+}
 
 
 

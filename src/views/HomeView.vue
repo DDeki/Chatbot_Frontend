@@ -6,7 +6,7 @@
     </button>
     <div class="chatbot">
       <header>
-        <button class="reset-btn" @click="clearMemory">
+        <button class="reset-btn" @click="clearMemory" :class="{ 'disabled': isGeneratingResponse }">
           <i class="fas fa-sync-alt"></i> Resetuj
         </button>
         <h2>ISO Chatbot&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</h2>
@@ -17,7 +17,7 @@
           <span class="material-symbols-outlined" v-if="message.type === 'incoming'">smart_toy</span>
           <p v-html="message.text"></p>
         </li>
-        <div v-if="recommendedQuestions.length > 0" class="recommendation-container">
+        <div v-if="recommendedQuestions.length > 0" class="recommendation-container" ref="recommendationContainer">
           <p class="recommendation-title">Preporučena pitanja:</p>
           <div v-for="(rec, index) in recommendedQuestions.slice(0, 2)" :key="index" class="recommended-question" @click="handleRecommendationClick(index)">
             {{ rec.question }}
@@ -39,6 +39,7 @@
     </div>
   </div>
 </template>
+
 
 <script>
 import keycloak from '@/keycloak';
@@ -90,8 +91,10 @@ export default {
     },
 
     clearMemory() {
+      if (this.isGeneratingResponse) return;
+
       const username = keycloak.tokenParsed.preferred_username;
-      fetch('http://0.0.0.0:8000/post/clear_memory', {
+      fetch('http://0.0.0.0:8000/api/clear_memory', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ username: username })
@@ -107,10 +110,12 @@ export default {
           } else {
             this.messages[this.messages.length - 1].text = GENERIC_ERROR_MESSAGE;
           }
+          this.recommendedQuestions = [];
           this.$nextTick(this.scrollToBottom);
         })
         .catch(error => {
           this.messages[this.messages.length - 1].text = GENERIC_ERROR_MESSAGE;
+          this.recommendedQuestions = [];
           this.$nextTick(this.scrollToBottom);
         });
     },
@@ -123,33 +128,83 @@ export default {
         body: JSON.stringify({ text: message, username: username })
       };
 
-      fetch('http://0.0.0.0:8000/post/generate_response', requestOptions)
+      fetch('http://0.0.0.0:8000/api/generate_response', requestOptions)
         .then(response => response.json())
         .then(data => {
           clearInterval(this.loadingInterval);
           if (!data.success) {
             this.messages[this.messages.length - 1].text = data.error;
-            this.isGeneratingResponse = false;
+            this.recommendedQuestions = [];
 
           } else {
             this.messages[this.messages.length - 1].text = data.text;
             
-            this.isGeneratingResponse = false;
-
             if (data.recommended_questions && Array.isArray(data.recommended_questions)) {
               this.recommendedQuestions = data.recommended_questions;
             }
           }
+          this.isGeneratingResponse = false;
           this.$nextTick(this.scrollToBottom);
         })
         .catch(error => {
           clearInterval(this.loadingInterval);
           this.messages[this.messages.length - 1].text = GENERIC_ERROR_MESSAGE;
+          this.recommendedQuestions = [];
           
-          this.$nextTick(this.scrollToBottom);
-
           this.isGeneratingResponse = false;
+
+          this.$nextTick(this.scrollToBottom);
         });
+    },
+
+    handleRecommendationClick(index) {
+      this.isGeneratingResponse = true;
+      const rec = this.recommendedQuestions[index];
+
+      const recommendationContainer = this.$refs.recommendationContainer;
+      recommendationContainer.classList.remove('fade-in');
+      recommendationContainer.classList.add('fade-out');
+
+      setTimeout(() => {
+        this.sendChat(rec.question, "outgoing");
+
+        setTimeout(() => {
+          this.sendChat(rec.answer, "incoming");
+
+          this.recommendedQuestions.splice(index, 1);
+
+          const username = keycloak.tokenParsed.preferred_username;
+          fetch('http://0.0.0.0:8000/api/recommended_question', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              username: username,
+              question: rec.question,
+              answer: rec.answer
+            })
+          })
+            .then(response => response.json())
+            .then(data => {
+              if (!data.success) {
+                this.messages[this.messages.length - 1].text = GENERIC_ERROR_MESSAGE;
+                this.recommendedQuestions = [];
+              }
+            })
+            .catch(error => {
+              this.messages[this.messages.length - 1].text = GENERIC_ERROR_MESSAGE;
+              this.recommendedQuestions = [];
+            })
+            .finally(() => {
+              this.$nextTick(() => {
+                if (this.recommendedQuestions.length > 0) {
+                  recommendationContainer.classList.remove('fade-out');
+                  recommendationContainer.classList.add('fade-in');
+                }
+                this.isGeneratingResponse = false;
+              });
+            });
+        }, 500);
+      }, 500);
     },
 
     handleChat() {
@@ -160,7 +215,7 @@ export default {
         }
       
       this.recommendedQuestions = [];
-      this.messages = this.messages.filter(message => message.type !== "recommendation" && message.type !== "recommendation-title");
+      //this.messages = this.messages.filter(message => message.type !== "recommendation" && message.type !== "recommendation-title");
 
       this.sendChat(message, "outgoing");
       this.userMessage = "";
@@ -204,14 +259,6 @@ export default {
       }, 500); // 0.5s
     },
 
-    handleRecommendationClick(index) {
-      const rec = this.recommendedQuestions[index];
-      this.recommendedQuestions = [];
-      this.messages = this.messages.filter(message => message.type !== "recommendation" && message.type !== "recommendation-title");
-      this.sendChat(rec.question, "outgoing");
-      this.sendChat(rec.answer, "incoming");
-    },
-
     scrollToBottom() {
       this.$nextTick(() => {
         const chatbox = this.$refs.chatbox.$el || this.$refs.chatbox;
@@ -230,7 +277,6 @@ export default {
     this.clearMemory();
 
     if (window.location.href.indexOf('state=') !== -1) {
-      // Remove the state and other parameters from the URL
       window.history.replaceState({}, document.title, "/iso_chatbot/");
     }
 
