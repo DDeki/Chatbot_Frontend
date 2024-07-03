@@ -44,7 +44,7 @@ div#chat.show-chatbot .chatbot-toggler span:last-child {
 }
 .chatbot {
   position: fixed;
-  bottom: 90px;
+  bottom: 60px;
   width: 70%;
   right: 15%;
   left: 15%;
@@ -227,7 +227,10 @@ header h2 {
   opacity: 0.5;
 }
 
-
+.reset-btn.disabled {
+  opacity: 0.75;
+  pointer-events: none;
+}
 
 
 
@@ -272,6 +275,7 @@ header h2 {
     width: 75%;
     right: 12.5%;
     left: 12.5%;
+    bottom: 45px;
   }
   .chatbot .chatbox {
     height: 600px;

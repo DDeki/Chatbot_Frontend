@@ -6,7 +6,7 @@
     </button>
     <div class="chatbot">
       <header>
-        <button class="reset-btn" @click="clearMemory">
+        <button class="reset-btn" @click="clearMemory" :class="{ 'disabled': isGeneratingResponse }">
           <i class="fas fa-sync-alt"></i> Resetuj
         </button>
         <h2>ISO Chatbot&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</h2>
@@ -40,6 +40,9 @@
   </div>
 </template>
 
+
+
+
 <script>
 import keycloak from '@/keycloak';
 
@@ -72,6 +75,15 @@ export default {
       isGeneratingResponse: false
     };
   },
+  watch: {
+    messages: {
+      handler() {
+        console.log("Messages updated, calling scrollToBottom");
+        this.scrollToBottom();
+      },
+      deep: true
+    }
+  },
   methods: {
     /* Show and hide the chatbot */
     closeChatbot() {
@@ -88,11 +100,13 @@ export default {
         text: message,
         recommendationIndex: recommendationIndex
       });
-      this.$nextTick(this.scrollToBottom);
+      this.scrollToBottom();
     },
 
     /* Clearing a chat history */
     clearMemory() {
+      if (this.isGeneratingResponse) return;
+
       const username = keycloak.tokenParsed.preferred_username;
       fetch('http://0.0.0.0:8000/post/clear_memory', {
         method: 'POST',
@@ -110,11 +124,11 @@ export default {
           } else {
             this.messages[this.messages.length - 1].text = GENERIC_ERROR_MESSAGE;
           }
-          this.$nextTick(this.scrollToBottom);
+          this.scrollToBottom();
         })
         .catch(error => {
           this.messages[this.messages.length - 1].text = GENERIC_ERROR_MESSAGE;
-          this.$nextTick(this.scrollToBottom);
+          this.scrollToBottom();
         });
     },
 
@@ -143,12 +157,12 @@ export default {
               this.recommendedQuestions = data.recommended_questions;
             }
           }
-          this.$nextTick(this.scrollToBottom);
+          this.scrollToBottom();
         })
         .catch(error => {
           clearInterval(this.loadingInterval); // Stop the loading animation
           this.messages[this.messages.length - 1].text = GENERIC_ERROR_MESSAGE;
-          this.$nextTick(this.scrollToBottom);
+          this.scrollToBottom();
 
           this.isGeneratingResponse = false;
         });
@@ -210,6 +224,7 @@ export default {
       this.loadingInterval = setInterval(() => {
         this.loadingMessageIndex = (this.loadingMessageIndex + 1) % loadingStates.length;
         this.messages[this.messages.length - 1].text = loadingStates[this.loadingMessageIndex];
+        this.scrollToBottom(); // Scroll to bottom during loading animation
       }, 500); // Adjust the interval time as needed
     },
 
@@ -224,31 +239,30 @@ export default {
     },
 
     scrollToBottom() {
-      const chatbox = this.$refs.chatbox;
-      if (chatbox) {
+    this.$nextTick(() => {
+      const chatbox = this.$refs.chatbox.$el || this.$refs.chatbox;
+      if (chatbox && chatbox.nodeType === 1) {
+        console.log("Forced scroll to bottom:", chatbox.scrollTop, chatbox.scrollHeight, chatbox);
         chatbox.scrollTop = chatbox.scrollHeight;
       }
-    }
-  },
-  updated() {
-    this.$nextTick(this.scrollToBottom);
+    });
+  }
+
   },
   mounted() {
-    // Optionally, adjust the height when the component mounts in case there is initial content
     this.$nextTick(this.adjustTextareaHeight);
     this.clearMemory();
 
-    // Add the script to clean the URL after authentication
     if (window.location.href.indexOf('state=') !== -1) {
-      // Remove the state and other parameters from the URL
       window.history.replaceState({}, document.title, "/iso_chatbot/");
     }
 
-    // Set cookies with appropriate attributes if needed
     document.cookie = "key=value; SameSite=None; Secure";
   }
 }
 </script>
+
+
 
 
 
