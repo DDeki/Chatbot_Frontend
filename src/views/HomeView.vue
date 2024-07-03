@@ -91,18 +91,15 @@ export default {
         .then(response => response.json())
         .then(data => {
           if (data.success) {
-            // Clear messages in the UI
             this.messages = [{
               type: "incoming",
               text: WELCOME_MESSAGE
             }];
           } else {
-            // Handle error returned by the server
             this.messages[this.messages.length - 1].text = GENERIC_ERROR_MESSAGE;
           }
         })
         .catch(error => {
-          // Handle network or other errors
           this.messages[this.messages.length - 1].text = GENERIC_ERROR_MESSAGE;
         });
     },
@@ -119,23 +116,26 @@ export default {
         .then(data => {
           clearInterval(this.loadingInterval); // Stop the loading animation
           if (!data.success) {
-            // Display the error message from the server in the chat interface
             this.messages[this.messages.length - 1].text = data.error;
           } else {
-            // Check if the response text starts with "Repeat:"
-            const newText = data.text.response;
-            if (newText.startsWith("Repeat:")) {
-              // Remove "Repeat:" from the beginning of the string
-              this.messages[this.messages.length - 1].text = newText.substring("Repeat: ".length);
-            } else {
-              // If the string doesn't start with "Repeat:", display it as is
-              this.messages[this.messages.length - 1].text = newText;
+            const newText = data.text;
+            this.messages[this.messages.length - 1].text = newText;
+
+            // Check for recommended_questions and add the first two to the messages
+            if (data.recommended_questions && Array.isArray(data.recommended_questions)) {
+              const recommendations = data.recommended_questions.slice(0, 2);
+              recommendations.forEach((rec, index) => {
+                this.messages.push({
+                  type: "incoming",
+                  text: `<strong>Preporučeno pitanje ${index + 1}:</strong> ${rec.question}<br><strong>Odgovor:</strong> ${rec.answer}`
+                });
+              });
             }
+            
           }
         })
         .catch(error => {
           clearInterval(this.loadingInterval); // Stop the loading animation
-          // Handle network or other errors
           this.messages[this.messages.length - 1].text = GENERIC_ERROR_MESSAGE;
         });
     },
