@@ -17,10 +17,16 @@
           <span class="material-symbols-outlined" v-if="message.type === 'incoming'">smart_toy</span>
           <p v-html="message.text"></p>
         </li>
+        <div v-if="recommendedQuestions.length > 0" class="recommendation-container">
+          <p class="recommendation-title">Preporučena pitanja:</p>
+          <div v-for="(rec, index) in recommendedQuestions.slice(0, 2)" :key="index" class="recommended-question" @click="handleRecommendationClick(index)">
+            {{ rec.question }}
+          </div>
+        </div>
       </transition-group>
       <div class="chat-input">
         <textarea v-model="userMessage" placeholder="Unesite pitanje..." spellcheck="false" required ref="chatInputTextArea" @input="adjustTextareaHeight()" @keydown="handleKeydown"></textarea>
-        <span class="material-symbols-rounded" @click="handleChat">send</span>
+        <span class="material-symbols-rounded" @click="handleChat" :class="{ 'disabled': isGeneratingResponse }">send</span>
       </div>
     </div>
     <div v-if="!showChatbot" class="centered-text">
@@ -54,13 +60,16 @@ export default {
       messages: [
         {
           type: "incoming",
-          text: WELCOME_MESSAGE
+          text: WELCOME_MESSAGE,
+          recommendationIndex: null
         }
       ],
       showChatbot: "show-chatbot",
       inputInitHeight: 0, // To store the initial height of the textarea
       loadingMessageIndex: 0, // To keep track of the current loading message
       loadingInterval: null, // To store the interval ID
+      recommendedQuestions: [], // To store the recommended questions
+      isGeneratingResponse: false
     };
   },
   methods: {
@@ -73,11 +82,13 @@ export default {
     },
 
     /* Putting message in the chatbox */
-    sendChat(message, type) {
+    sendChat(message, type, recommendationIndex = null) {
       this.messages.push({
         type: type,
-        text: message
+        text: message,
+        recommendationIndex: recommendationIndex
       });
+      this.$nextTick(this.scrollToBottom);
     },
 
     /* Clearing a chat history */
@@ -93,14 +104,17 @@ export default {
           if (data.success) {
             this.messages = [{
               type: "incoming",
-              text: WELCOME_MESSAGE
+              text: WELCOME_MESSAGE,
+              recommendationIndex: null
             }];
           } else {
             this.messages[this.messages.length - 1].text = GENERIC_ERROR_MESSAGE;
           }
+          this.$nextTick(this.scrollToBottom);
         })
         .catch(error => {
           this.messages[this.messages.length - 1].text = GENERIC_ERROR_MESSAGE;
+          this.$nextTick(this.scrollToBottom);
         });
     },
 
@@ -111,32 +125,32 @@ export default {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ text: message, username: username })
       };
+
       fetch('http://0.0.0.0:8000/post/generate_response', requestOptions)
         .then(response => response.json())
         .then(data => {
           clearInterval(this.loadingInterval); // Stop the loading animation
           if (!data.success) {
             this.messages[this.messages.length - 1].text = data.error;
-          } else {
-            const newText = data.text;
-            this.messages[this.messages.length - 1].text = newText;
+            this.isGeneratingResponse = false;
 
-            // Check for recommended_questions and add the first two to the messages
-            if (data.recommended_questions && Array.isArray(data.recommended_questions)) {
-              const recommendations = data.recommended_questions.slice(0, 2);
-              recommendations.forEach((rec, index) => {
-                this.messages.push({
-                  type: "incoming",
-                  text: `<strong>Preporučeno pitanje ${index + 1}:</strong> ${rec.question}<br><strong>Odgovor:</strong> ${rec.answer}`
-                });
-              });
-            }
+          } else {
+            this.messages[this.messages.length - 1].text = data.text;
             
+            this.isGeneratingResponse = false;
+
+            if (data.recommended_questions && Array.isArray(data.recommended_questions)) {
+              this.recommendedQuestions = data.recommended_questions;
+            }
           }
+          this.$nextTick(this.scrollToBottom);
         })
         .catch(error => {
           clearInterval(this.loadingInterval); // Stop the loading animation
           this.messages[this.messages.length - 1].text = GENERIC_ERROR_MESSAGE;
+          this.$nextTick(this.scrollToBottom);
+
+          this.isGeneratingResponse = false;
         });
     },
 
@@ -145,12 +159,22 @@ export default {
       // User sending a message 
       const message = this.userMessage.trim();
       if (!message) { return; }
+      if (!message || this.isGeneratingResponse) { 
+          return;
+        }
+      
+      // Clear recommended questions when user types a new message
+      this.recommendedQuestions = [];
+      this.messages = this.messages.filter(message => message.type !== "recommendation" && message.type !== "recommendation-title");
+
       this.sendChat(message, "outgoing");
       this.userMessage = "";
 
       // Reset the textarea height after sending the message
       const chatInput = this.$refs.chatInputTextArea;
       chatInput.style.height = `${this.inputInitHeight}px`;
+
+      this.isGeneratingResponse = true;
 
       // Bot responding
       setTimeout(() => {
@@ -188,12 +212,26 @@ export default {
         this.messages[this.messages.length - 1].text = loadingStates[this.loadingMessageIndex];
       }, 500); // Adjust the interval time as needed
     },
+
+    handleRecommendationClick(index) {
+      const rec = this.recommendedQuestions[index];
+      // Clear the recommended questions
+      this.recommendedQuestions = [];
+      this.messages = this.messages.filter(message => message.type !== "recommendation" && message.type !== "recommendation-title");
+      // Simulate user asking the recommended question
+      this.sendChat(rec.question, "outgoing");
+      this.sendChat(rec.answer, "incoming");
+    },
+
+    scrollToBottom() {
+      const chatbox = this.$refs.chatbox;
+      if (chatbox) {
+        chatbox.scrollTop = chatbox.scrollHeight;
+      }
+    }
   },
   updated() {
-    const chatbox = this.$refs.chatbox;
-    if (chatbox) {
-      chatbox.scrollTop = chatbox.scrollHeight;
-    }
+    this.$nextTick(this.scrollToBottom);
   },
   mounted() {
     // Optionally, adjust the height when the component mounts in case there is initial content
@@ -211,5 +249,7 @@ export default {
   }
 }
 </script>
+
+
 
 <style src="../components/ChatBotStyle.css"></style>

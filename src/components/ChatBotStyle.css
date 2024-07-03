@@ -90,7 +90,7 @@ header h2 {
 }
 .chatbot .chatbox {
   overflow-y: auto;
-  height: 700px;
+  height: 725px;
   padding: 30px 30px 100px;
 }
 .chatbot :where(.chatbox, textarea)::-webkit-scrollbar {
@@ -221,6 +221,51 @@ header h2 {
   color: #333;
 }
 
+
+.chat-input span.disabled {
+  pointer-events: none;
+  opacity: 0.5;
+}
+
+
+
+
+
+
+.recommended-question {
+  background-color: #e9ecef;
+  border-radius: 5px;
+  padding: 10px;
+  margin: 5px 0;
+  cursor: pointer;
+  text-align: center;
+}
+
+.recommended-question:hover {
+  background-color: #dee2e6;
+}
+
+.recommendation-title {
+  margin-top: 20px; /* Space between the last assistant message and the "Preporučena pitanja" title */
+  text-align: center;
+}
+
+.recommendation-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-top: 20px; /* Additional space between the title and questions */
+  margin-bottom: 20px; /* Space between the questions and the next message */
+}
+
+
+
+
+
+
+
+
+
 /* Adjust width for medium screens */
 @media (min-width: 601px) and (max-width: 1400px) {
   .chatbot {
@@ -260,4 +305,9 @@ header h2 {
     display: block;
   }
 }
+
+
+
+
+
 
