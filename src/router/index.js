@@ -10,6 +10,10 @@ const routes = [
     meta: {
       requiresAuth: true
     }
+  },
+  {
+    path: '/:catchAll(.*)', // catch all undefined routes
+    redirect: '/'
   }
 ]
 
