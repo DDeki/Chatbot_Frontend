@@ -232,9 +232,6 @@ header h2 {
   pointer-events: none;
 }
 
-
-
-
 .recommended-question {
   background-color: #e9ecef;
   border-radius: 5px;
@@ -270,12 +267,6 @@ header h2 {
 .recommendation-container.fade-in {
   opacity: 1;
 }
-
-
-
-
-
-
 
 /* Adjust width for medium screens */
 @media (min-width: 601px) and (max-width: 1400px) {
